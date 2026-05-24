@@ -5,6 +5,7 @@ import br.com.fiap.fordvinshare.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,7 @@ public class DashboardController {
 
 	@GetMapping("/resumo")
 	@Operation(summary = "Obter resumo do dashboard", operationId = "obterResumoDashboard")
+	@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 	public DashboardResumoResponse obterResumo() {
 		return dashboardService.obterResumo();
 	}

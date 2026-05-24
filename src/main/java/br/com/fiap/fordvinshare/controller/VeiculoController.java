@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +32,7 @@ public class VeiculoController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Cadastrar veículo vinculado a um cliente", operationId = "cadastrarVeiculo")
+	@PreAuthorize("hasRole('ADMIN')")
 	public VeiculoResponse cadastrar(@Valid @RequestBody VeiculoRequest request) {
 		return veiculoService.cadastrar(request);
 	}
@@ -55,12 +57,14 @@ public class VeiculoController {
 
 	@PutMapping("/{id}")
 	@Operation(summary = "Atualizar veículo", operationId = "atualizarVeiculo")
+	@PreAuthorize("hasRole('ADMIN')")
 	public VeiculoResponse atualizar(@PathVariable Long id, @Valid @RequestBody VeiculoRequest request) {
 		return veiculoService.atualizar(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@Operation(summary = "Deletar veículo", operationId = "deletarVeiculo")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> deletar(@PathVariable Long id) {
 		veiculoService.deletar(id);
 		return ResponseEntity.noContent().build();

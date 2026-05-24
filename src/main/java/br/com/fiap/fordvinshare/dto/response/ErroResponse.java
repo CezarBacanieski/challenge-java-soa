@@ -18,7 +18,9 @@ import lombok.Setter;
 public class ErroResponse {
 
 	private int status;
+	private String codigo;
 	private String erro;
+	private String requestId;
 	private LocalDateTime timestamp;
 	private List<CampoErroResponse> campos;
 }

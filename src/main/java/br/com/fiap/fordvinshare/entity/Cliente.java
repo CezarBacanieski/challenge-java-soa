@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import br.com.fiap.fordvinshare.security.crypto.EncryptedString;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,8 +32,10 @@ public class Cliente {
 	private String nome;
 
 	@Column(nullable = false, unique = true)
+	@EncryptedString
 	private String email;
 
+	@EncryptedString
 	private String telefone;
 
 	@Column(nullable = false, updatable = false)

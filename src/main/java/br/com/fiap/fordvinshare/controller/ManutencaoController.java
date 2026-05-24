@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,24 +31,28 @@ public class ManutencaoController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Registrar manutenção", operationId = "registrarManutencao")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ManutencaoResponse registrar(@Valid @RequestBody ManutencaoRequest request) {
 		return manutencaoService.registrar(request);
 	}
 
 	@GetMapping("/veiculo/{veiculoId}")
 	@Operation(summary = "Listar histórico de manutenções de um veículo", operationId = "listarManutencoesPorVeiculo")
+	@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 	public List<ManutencaoResponse> listarPorVeiculo(@PathVariable Long veiculoId) {
 		return manutencaoService.listarPorVeiculo(veiculoId);
 	}
 
 	@GetMapping
 	@Operation(summary = "Listar todas as manutenções", operationId = "listarManutencoes")
+	@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 	public List<ManutencaoResponse> listarTodas() {
 		return manutencaoService.listarTodas();
 	}
 
 	@DeleteMapping("/{id}")
 	@Operation(summary = "Deletar manutenção", operationId = "deletarManutencao")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> deletar(@PathVariable Long id) {
 		manutencaoService.deletar(id);
 		return ResponseEntity.noContent().build();

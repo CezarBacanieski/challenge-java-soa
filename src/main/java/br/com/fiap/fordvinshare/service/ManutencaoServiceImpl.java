@@ -6,6 +6,9 @@ import br.com.fiap.fordvinshare.entity.Manutencao;
 import br.com.fiap.fordvinshare.entity.Veiculo;
 import br.com.fiap.fordvinshare.repository.ManutencaoRepository;
 import br.com.fiap.fordvinshare.repository.VeiculoRepository;
+import br.com.fiap.fordvinshare.security.audit.AuditAction;
+import br.com.fiap.fordvinshare.security.audit.AuditService;
+import br.com.fiap.fordvinshare.security.util.SecurityContextUtil;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ public class ManutencaoServiceImpl implements ManutencaoService {
 
 	private final ManutencaoRepository manutencaoRepository;
 	private final VeiculoRepository veiculoRepository;
+	private final AuditService audit;
 
 	@Override
 	@Transactional
@@ -38,7 +42,9 @@ public class ManutencaoServiceImpl implements ManutencaoService {
 			veiculoRepository.save(veiculo);
 		}
 
-		return toResponse(manutencaoRepository.save(manutencao));
+		Manutencao saved = manutencaoRepository.save(manutencao);
+		audit.record(AuditAction.MANUTENCAO_CREATE, SecurityContextUtil.currentUserIdOrNull(), "manutencao:" + saved.getId(), null, null, true, null);
+		return toResponse(saved);
 	}
 
 	@Override
@@ -69,6 +75,7 @@ public class ManutencaoServiceImpl implements ManutencaoService {
 		Manutencao manutencao = manutencaoRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("Manutenção não encontrada"));
 		manutencaoRepository.delete(manutencao);
+		audit.record(AuditAction.MANUTENCAO_DELETE, SecurityContextUtil.currentUserIdOrNull(), "manutencao:" + id, null, null, true, null);
 	}
 
 	private Veiculo buscarVeiculoPorId(Long veiculoId) {

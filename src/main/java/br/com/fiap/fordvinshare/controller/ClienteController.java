@@ -10,6 +10,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +32,7 @@ public class ClienteController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Cadastrar cliente", operationId = "cadastrarCliente")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ClienteResponse cadastrar(@Valid @RequestBody ClienteRequest request) {
 		return clienteService.cadastrar(request);
 	}
@@ -49,12 +51,14 @@ public class ClienteController {
 
 	@PutMapping("/{id}")
 	@Operation(summary = "Atualizar cliente", operationId = "atualizarCliente")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ClienteResponse atualizar(@PathVariable Long id, @Valid @RequestBody ClienteRequest request) {
 		return clienteService.atualizar(id, request);
 	}
 
 	@DeleteMapping("/{id}")
 	@Operation(summary = "Deletar cliente", operationId = "deletarCliente")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> deletar(@PathVariable Long id) {
 		clienteService.deletar(id);
 		return ResponseEntity.noContent().build();

@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import br.com.fiap.fordvinshare.security.crypto.EncryptedString;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,5 +48,6 @@ public class Manutencao {
 	private Boolean realizadaNaRedeOficial;
 
 	@Column(columnDefinition = "TEXT")
+	@EncryptedString
 	private String observacoes;
 }

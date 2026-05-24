@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +32,7 @@ public class LeadController {
 	@PostMapping("/gerar/{veiculoId}")
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Gerar lead manualmente para um veículo", operationId = "gerarLeadManual")
+	@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 	public LeadResponse gerarManual(
 			@PathVariable Long veiculoId,
 			@Valid @RequestBody(required = false) LeadRequest request) {
@@ -40,24 +42,28 @@ public class LeadController {
 	@PostMapping("/gerar-automatico")
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Gerar leads automáticos para veículos em risco", operationId = "gerarLeadsAutomatico")
+	@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 	public List<LeadResponse> gerarAutomatico() {
 		return leadService.gerarAutomatico();
 	}
 
 	@GetMapping
 	@Operation(summary = "Listar todos os leads", operationId = "listarLeads")
+	@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 	public List<LeadResponse> listarTodos() {
 		return leadService.listarTodos();
 	}
 
 	@GetMapping("/status/{status}")
 	@Operation(summary = "Filtrar leads por status", operationId = "listarLeadsPorStatus")
+	@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 	public List<LeadResponse> listarPorStatus(@PathVariable StatusLead status) {
 		return leadService.listarPorStatus(status);
 	}
 
 	@PutMapping("/{id}/status")
 	@Operation(summary = "Atualizar status do lead", operationId = "atualizarStatusLead")
+	@PreAuthorize("hasAnyRole('ANALYST','ADMIN')")
 	public LeadResponse atualizarStatus(@PathVariable Long id, @Valid @RequestBody LeadStatusRequest request) {
 		return leadService.atualizarStatus(id, request);
 	}

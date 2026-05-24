@@ -10,6 +10,9 @@ import br.com.fiap.fordvinshare.entity.Veiculo;
 import br.com.fiap.fordvinshare.repository.LeadRepository;
 import br.com.fiap.fordvinshare.repository.ManutencaoRepository;
 import br.com.fiap.fordvinshare.repository.VeiculoRepository;
+import br.com.fiap.fordvinshare.security.audit.AuditAction;
+import br.com.fiap.fordvinshare.security.audit.AuditService;
+import br.com.fiap.fordvinshare.security.util.SecurityContextUtil;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -28,6 +31,7 @@ public class LeadServiceImpl implements LeadService {
 	private final LeadRepository leadRepository;
 	private final VeiculoRepository veiculoRepository;
 	private final ManutencaoRepository manutencaoRepository;
+	private final AuditService audit;
 
 	@Override
 	@Transactional
@@ -43,7 +47,9 @@ public class LeadServiceImpl implements LeadService {
 				.prioridade(prioridade)
 				.build();
 
-		return toResponse(leadRepository.save(lead));
+		Lead saved = leadRepository.save(lead);
+		audit.record(AuditAction.LEAD_CREATE_MANUAL, SecurityContextUtil.currentUserIdOrNull(), "lead:" + saved.getId(), null, null, true, null);
+		return toResponse(saved);
 	}
 
 	@Override
@@ -67,6 +73,7 @@ public class LeadServiceImpl implements LeadService {
 			}
 		}
 
+		audit.record(AuditAction.LEAD_CREATE_AUTO, SecurityContextUtil.currentUserIdOrNull(), "lead:auto", null, null, true, "count=" + leadsGerados.size());
 		return leadsGerados;
 	}
 
@@ -95,7 +102,9 @@ public class LeadServiceImpl implements LeadService {
 				.orElseThrow(() -> new EntityNotFoundException("Lead não encontrado"));
 		lead.setStatus(request.getStatus());
 
-		return toResponse(leadRepository.save(lead));
+		Lead saved = leadRepository.save(lead);
+		audit.record(AuditAction.LEAD_STATUS_UPDATE, SecurityContextUtil.currentUserIdOrNull(), "lead:" + saved.getId(), null, null, true, "status=" + saved.getStatus());
+		return toResponse(saved);
 	}
 
 	private LeadResponse criarLeadAutomatico(Veiculo veiculo, String motivo, PrioridadeLead prioridade) {

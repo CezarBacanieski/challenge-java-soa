@@ -6,6 +6,9 @@ import br.com.fiap.fordvinshare.entity.Cliente;
 import br.com.fiap.fordvinshare.entity.Veiculo;
 import br.com.fiap.fordvinshare.repository.ClienteRepository;
 import br.com.fiap.fordvinshare.repository.VeiculoRepository;
+import br.com.fiap.fordvinshare.security.audit.AuditAction;
+import br.com.fiap.fordvinshare.security.audit.AuditService;
+import br.com.fiap.fordvinshare.security.util.SecurityContextUtil;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +21,7 @@ public class VeiculoServiceImpl implements VeiculoService {
 
 	private final VeiculoRepository veiculoRepository;
 	private final ClienteRepository clienteRepository;
+	private final AuditService audit;
 
 	@Override
 	@Transactional
@@ -33,7 +37,9 @@ public class VeiculoServiceImpl implements VeiculoService {
 				.utilizaRedeOficial(resolveUtilizaRedeOficial(request.getUtilizaRedeOficial()))
 				.build();
 
-		return toResponse(veiculoRepository.save(veiculo));
+		Veiculo saved = veiculoRepository.save(veiculo);
+		audit.record(AuditAction.VEICULO_CREATE, SecurityContextUtil.currentUserIdOrNull(), "veiculo:" + saved.getId(), null, null, true, null);
+		return toResponse(saved);
 	}
 
 	@Override
@@ -77,7 +83,9 @@ public class VeiculoServiceImpl implements VeiculoService {
 		veiculo.setCliente(cliente);
 		veiculo.setUtilizaRedeOficial(resolveUtilizaRedeOficial(request.getUtilizaRedeOficial()));
 
-		return toResponse(veiculoRepository.save(veiculo));
+		Veiculo saved = veiculoRepository.save(veiculo);
+		audit.record(AuditAction.VEICULO_UPDATE, SecurityContextUtil.currentUserIdOrNull(), "veiculo:" + saved.getId(), null, null, true, null);
+		return toResponse(saved);
 	}
 
 	@Override
@@ -85,6 +93,7 @@ public class VeiculoServiceImpl implements VeiculoService {
 	public void deletar(Long id) {
 		Veiculo veiculo = buscarEntidadePorId(id);
 		veiculoRepository.delete(veiculo);
+		audit.record(AuditAction.VEICULO_DELETE, SecurityContextUtil.currentUserIdOrNull(), "veiculo:" + id, null, null, true, null);
 	}
 
 	private Veiculo buscarEntidadePorId(Long id) {

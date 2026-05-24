@@ -4,6 +4,9 @@ import br.com.fiap.fordvinshare.dto.request.ClienteRequest;
 import br.com.fiap.fordvinshare.dto.response.ClienteResponse;
 import br.com.fiap.fordvinshare.entity.Cliente;
 import br.com.fiap.fordvinshare.repository.ClienteRepository;
+import br.com.fiap.fordvinshare.security.audit.AuditAction;
+import br.com.fiap.fordvinshare.security.audit.AuditService;
+import br.com.fiap.fordvinshare.security.util.SecurityContextUtil;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ClienteServiceImpl implements ClienteService {
 
 	private final ClienteRepository clienteRepository;
+	private final AuditService audit;
 
 	@Override
 	@Transactional
@@ -25,7 +29,9 @@ public class ClienteServiceImpl implements ClienteService {
 				.telefone(request.getTelefone())
 				.build();
 
-		return toResponse(clienteRepository.save(cliente));
+		Cliente saved = clienteRepository.save(cliente);
+		audit.record(AuditAction.CLIENTE_CREATE, SecurityContextUtil.currentUserIdOrNull(), "cliente:" + saved.getId(), null, null, true, null);
+		return toResponse(saved);
 	}
 
 	@Override
@@ -51,7 +57,9 @@ public class ClienteServiceImpl implements ClienteService {
 		cliente.setEmail(request.getEmail());
 		cliente.setTelefone(request.getTelefone());
 
-		return toResponse(clienteRepository.save(cliente));
+		Cliente saved = clienteRepository.save(cliente);
+		audit.record(AuditAction.CLIENTE_UPDATE, SecurityContextUtil.currentUserIdOrNull(), "cliente:" + saved.getId(), null, null, true, null);
+		return toResponse(saved);
 	}
 
 	@Override
@@ -59,6 +67,7 @@ public class ClienteServiceImpl implements ClienteService {
 	public void deletar(Long id) {
 		Cliente cliente = buscarEntidadePorId(id);
 		clienteRepository.delete(cliente);
+		audit.record(AuditAction.CLIENTE_DELETE, SecurityContextUtil.currentUserIdOrNull(), "cliente:" + id, null, null, true, null);
 	}
 
 	private Cliente buscarEntidadePorId(Long id) {
