@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-e-testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Executar testes automatizados
+        run: |
+          chmod +x mvnw
+          ./mvnw -B test
+
+      - name: Resumo dos testes e da cobertura
+        if: always()
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import csv, glob, xml.etree.ElementTree as ET
+          total = falhas = erros = ignorados = 0
+          linhas = []
+          for arquivo in sorted(glob.glob("target/surefire-reports/TEST-*.xml")):
+              s = ET.parse(arquivo).getroot()
+              t, f, e, i = (int(s.get(k)) for k in ("tests", "failures", "errors", "skipped"))
+              total, falhas, erros, ignorados = total + t, falhas + f, erros + e, ignorados + i
+              ok = "✅" if f + e == 0 else "❌"
+              linhas.append(f"| {ok} | {s.get('name').split('.')[-1]} | {t} | {f + e} |")
+          print("## Testes automatizados\n")
+          print(f"**{total} testes**: {total - falhas - erros - ignorados} passaram, {falhas + erros} falharam, {ignorados} ignorados.\n")
+          print("| | Classe | Testes | Falhas |\n| :-: | --- | :-: | :-: |")
+          print("\n".join(linhas))
+          try:
+              coberto = perdido = 0
+              for row in csv.DictReader(open("target/site/jacoco/jacoco.csv")):
+                  coberto += int(row["LINE_COVERED"]); perdido += int(row["LINE_MISSED"])
+              print(f"\n## Cobertura (JaCoCo)\n\n**{100 * coberto / (coberto + perdido):.1f}%** das linhas cobertas pelos testes.")
+          except FileNotFoundError:
+              pass
+          PY
+
+      - name: Publicar relatórios de teste e cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-de-teste
+          path: |
+            target/surefire-reports/
+            target/site/jacoco/
