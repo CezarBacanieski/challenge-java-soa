@@ -20,5 +20,6 @@ public class ErroResponse {
 	private int status;
 	private String erro;
 	private LocalDateTime timestamp;
+	private String path;
 	private List<CampoErroResponse> campos;
 }
