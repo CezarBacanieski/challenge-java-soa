@@ -2,6 +2,14 @@
 
 Execução real da solução em 25/09/2026, com a API rodando localmente (Spring Boot + PostgreSQL no Docker).
 
+## Diagramas da arquitetura
+
+| Diagrama | Arquivo |
+| --- | --- |
+| Componentes e responsabilidades | [01-componentes.png](diagramas/01-componentes.png) |
+| Fluxo de comunicação e autenticação | [02-fluxo-autenticacao.png](diagramas/02-fluxo-autenticacao.png) |
+| Modelo de dados | [03-modelo-de-dados.png](diagramas/03-modelo-de-dados.png) |
+
 ## Testes automatizados
 
 **51 testes, 0 falhas, `BUILD SUCCESS`**, com 80% das linhas cobertas pelos testes.

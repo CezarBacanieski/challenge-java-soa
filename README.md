@@ -123,6 +123,8 @@ O arquivo [`requests.http`](requests.http) tem as mesmas chamadas prontas para o
 
 ### Camadas e responsabilidades
 
+Os diagramas abaixo são desenhados pelo próprio GitHub a partir do código Mermaid. Cópias em PNG ficam em [`docs/diagramas/`](docs/diagramas).
+
 A aplicação segue uma arquitetura em camadas. Cada camada tem uma única responsabilidade e só conversa com a camada vizinha.
 
 | Camada | Pacote | Responsabilidade |
@@ -150,51 +152,49 @@ src/main/java/br/com/fiap/fordvinshare
 
 ```mermaid
 flowchart LR
-    subgraph Consumidores
+    subgraph CONS["Consumidores"]
         APP[App Mobile]
         DASH[Dashboard Web]
         SW[Swagger UI]
     end
 
     subgraph API["Ford VIN Share API (Spring Boot)"]
-        subgraph Seguranca["Camada de segurança"]
-            F[JwtAuthenticationFilter]
-            SC[SecurityConfig<br/>regras por perfil]
-            JS[JwtService<br/>gera e valida JWT]
-            H[EntryPoint 401 /<br/>AccessDeniedHandler 403]
+        subgraph SEG["Segurança"]
+            F["JwtAuthenticationFilter<br/>lê o header Bearer"]
+            SC["SecurityConfig<br/>regras por rota e perfil"]
+            JS["JwtService<br/>gera e valida o JWT"]
+            H["Handlers de segurança<br/>401 e 403"]
         end
-        subgraph Controllers
-            AC[AuthController]
-            UC[UsuarioController]
-            CC[ConcessionariaController]
-            CLC[ClienteController]
-            VC[VeiculoController]
-            MC[ManutencaoController]
-            LC[LeadController]
-            DC[DashboardController]
+        subgraph CTRL["Controllers REST"]
+            AC["AuthController<br/>/api/auth"]
+            RC["Recursos: usuários, concessionárias,<br/>clientes, veículos, manutenções,<br/>leads e dashboard"]
         end
-        subgraph Services["Serviços de negócio"]
-            AS[AuthService]
-            NS[VIN Share, retenção,<br/>leads, cadastros]
+        subgraph SRV["Serviços"]
+            AS["AuthService<br/>login com BCrypt"]
+            NS["Regras de negócio<br/>VIN Share, retenção, leads"]
         end
-        R[Repositories JPA]
-        EH[GlobalExceptionHandler<br/>formato único de erro]
+        R["Repositories<br/>Spring Data JPA"]
+        EH["GlobalExceptionHandler<br/>formato único de erro"]
     end
 
     DB[(PostgreSQL)]
 
-    APP & DASH & SW -->|HTTP + JSON<br/>Authorization: Bearer JWT| F
-    F -.valida token.-> JS
-    F --> SC --> Controllers
-    F -.token inválido.-> H
-    SC -.sem token ou sem permissão.-> H
+    APP & DASH & SW -->|"HTTP + JSON<br/>Bearer JWT"| F
+    F -->|valida token| JS
+    F -->|token inválido| H
+    F --> SC
+    SC -->|sem token ou sem permissão| H
+    SC -->|acesso liberado| CTRL
     H --> EH
+    CTRL -.exceções.-> EH
     AC --> AS
-    AS -.gera token.-> JS
-    Controllers --> NS --> R --> DB
-    AS --> R
-    Controllers -.exceções.-> EH
+    AS -->|gera token| JS
+    RC --> NS
+    AS & NS --> R
+    R -->|JDBC| DB
 ```
+
+Versão em imagem: [`docs/diagramas/01-componentes.png`](docs/diagramas/01-componentes.png)
 
 ### Fluxo de autenticação e autorização
 
@@ -206,9 +206,10 @@ sequenceDiagram
     participant J as JwtService
     participant S as SecurityConfig
     participant A as AuthController / AuthService
-    participant R as Recurso protegido
+    participant R as Controller / Service
 
     C->>A: POST /api/auth/login {email, senha}
+    Note over C,A: rota pública, liberada no SecurityConfig
     A->>A: busca o usuário e confere a senha (BCrypt)
     alt e-mail ou senha incorretos
         A-->>C: 401 "E-mail ou senha inválidos"
@@ -236,12 +237,14 @@ sequenceDiagram
                 S-->>C: 403 "Acesso negado"
             else perfil permitido
                 S->>R: encaminha a requisição
-                R->>R: GESTOR só acessa a própria concessionária (claim do token)
+                R->>R: GESTOR só acessa a própria concessionária<br/>(compara o id com o claim concessionariaId)
                 R-->>C: 200 ou 403
             end
         end
     end
 ```
+
+Versão em imagem: [`docs/diagramas/02-fluxo-autenticacao.png`](docs/diagramas/02-fluxo-autenticacao.png)
 
 ### Modelo de dados
 
@@ -304,6 +307,8 @@ erDiagram
         Long veiculo_id FK
     }
 ```
+
+Versão em imagem: [`docs/diagramas/03-modelo-de-dados.png`](docs/diagramas/03-modelo-de-dados.png)
 
 ## Perfis e permissões
 
