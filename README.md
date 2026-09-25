@@ -186,7 +186,8 @@ flowchart LR
     APP & DASH & SW -->|HTTP + JSON<br/>Authorization: Bearer JWT| F
     F -.valida token.-> JS
     F --> SC --> Controllers
-    SC -.sem permissão.-> H
+    F -.token inválido.-> H
+    SC -.sem token ou sem permissão.-> H
     H --> EH
     AC --> AS
     AS -.gera token.-> JS
@@ -209,8 +210,10 @@ sequenceDiagram
 
     C->>A: POST /api/auth/login {email, senha}
     A->>A: busca o usuário e confere a senha (BCrypt)
-    alt credenciais inválidas
+    alt e-mail ou senha incorretos
         A-->>C: 401 "E-mail ou senha inválidos"
+    else usuário desativado
+        A-->>C: 401 "Usuário desativado"
     else credenciais válidas
         A->>J: gerarToken(usuario)
         J-->>A: JWT assinado (HS256) com perfil, concessionariaId e exp
@@ -244,56 +247,61 @@ sequenceDiagram
 
 ```mermaid
 erDiagram
-    CONCESSIONARIA ||--o{ USUARIO : "emprega"
-    CONCESSIONARIA ||--o{ MANUTENCAO : "realiza"
+    CONCESSIONARIA |o--o{ USUARIO : "emprega (ADMIN não tem)"
+    CONCESSIONARIA |o--o{ MANUTENCAO : "realiza (só na rede oficial)"
     CLIENTE ||--o{ VEICULO : "possui"
     VEICULO ||--o{ MANUTENCAO : "recebe"
     VEICULO ||--o{ LEAD : "gera"
 
     CONCESSIONARIA {
-        Long id
+        Long id PK
         String nome
         String cnpj "único"
         String cidade
         String uf
     }
     USUARIO {
-        Long id
+        Long id PK
         String nome
         String email "único"
         String senha "hash BCrypt"
         Perfil perfil "ADMIN, GESTOR, CONSULTOR"
         Boolean ativo
+        Long concessionaria_id FK "opcional"
     }
     CLIENTE {
-        Long id
+        Long id PK
         String nome
         String email "único"
         String telefone
         LocalDate dataCadastro
     }
     VEICULO {
-        Long id
+        Long id PK
         String vin "único, 17 caracteres"
         String marca
         String modelo
         Integer anoFabricacao
         Boolean utilizaRedeOficial
+        Long cliente_id FK
     }
     MANUTENCAO {
-        Long id
+        Long id PK
         LocalDate dataServico
         String tipoServico
         BigDecimal valor
         Boolean realizadaNaRedeOficial
         String observacoes
+        Long veiculo_id FK
+        Long concessionaria_id FK "opcional"
     }
     LEAD {
-        Long id
+        Long id PK
         LocalDate dataGeracao
         String motivoLead
         StatusLead status "PENDENTE, CONTATADO, CONVERTIDO, PERDIDO"
         PrioridadeLead prioridade "BAIXA, MEDIA, ALTA"
+        Long veiculo_id FK
     }
 ```
 
