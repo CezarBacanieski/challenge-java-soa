@@ -34,6 +34,11 @@ public class Manutencao {
 	@JoinColumn(name = "veiculo_id", nullable = false)
 	private Veiculo veiculo;
 
+	/** Concessionária onde o serviço foi feito. Obrigatória quando realizada na rede oficial. */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "concessionaria_id")
+	private Concessionaria concessionaria;
+
 	@Column(nullable = false)
 	private LocalDate dataServico;
 

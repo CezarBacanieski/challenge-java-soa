@@ -72,20 +72,18 @@ public class LeadServiceImpl implements LeadService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<LeadResponse> listarTodos() {
-		return leadRepository.findAll()
-				.stream()
+	public List<LeadResponse> listar(StatusLead status) {
+		List<Lead> leads = status == null ? leadRepository.findAll() : leadRepository.findByStatus(status);
+		return leads.stream()
 				.map(this::toResponse)
 				.toList();
 	}
 
 	@Override
 	@Transactional(readOnly = true)
-	public List<LeadResponse> listarPorStatus(StatusLead status) {
-		return leadRepository.findByStatus(status)
-				.stream()
-				.map(this::toResponse)
-				.toList();
+	public LeadResponse buscarPorId(Long id) {
+		return toResponse(leadRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Lead não encontrado")));
 	}
 
 	@Override

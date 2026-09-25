@@ -1,0 +1,59 @@
+### Coleção de requisições para teste manual (IntelliJ HTTP Client ou extensão REST Client do VS Code)
+
+@base = http://localhost:8080
+
+### 1) Login como ADMIN (copie o token da resposta)
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@ford.com", "senha": "Admin@123" }
+
+### Cole o token aqui
+@token = COLE_O_TOKEN_AQUI
+
+### 2) Usuário autenticado
+GET {{base}}/api/auth/me
+Authorization: Bearer {{token}}
+
+### 3) Sem token -> 401
+GET {{base}}/api/clientes
+
+### 4) Cadastrar cliente -> 201 + Location
+POST {{base}}/api/clientes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "nome": "Maria Silva", "email": "maria@email.com", "telefone": "11999999999" }
+
+### 5) Cadastrar veículo
+POST {{base}}/api/veiculos
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "vin": "9BFZH55L3P8123456", "marca": "Ford", "modelo": "Ranger", "anoFabricacao": 2024, "clienteId": 1 }
+
+### 6) Registrar manutenção na rede oficial
+POST {{base}}/api/manutencoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "veiculoId": 1, "concessionariaId": 1, "dataServico": "2026-09-01", "tipoServico": "Revisão 10.000km", "valor": 750.00, "realizadaNaRedeOficial": true }
+
+### 7) Indicadores da concessionária
+GET {{base}}/api/concessionarias/1/indicadores
+Authorization: Bearer {{token}}
+
+### 8) Gerar leads automaticamente
+POST {{base}}/api/leads/geracoes-automaticas
+Authorization: Bearer {{token}}
+
+### 9) Listar leads pendentes
+GET {{base}}/api/leads?status=PENDENTE
+Authorization: Bearer {{token}}
+
+### 10) Atualizar status do lead
+PATCH {{base}}/api/leads/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "status": "CONTATADO" }

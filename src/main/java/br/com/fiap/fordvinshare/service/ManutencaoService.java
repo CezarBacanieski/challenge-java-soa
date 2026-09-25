@@ -12,5 +12,7 @@ public interface ManutencaoService {
 
 	List<ManutencaoResponse> listarTodas();
 
+	ManutencaoResponse buscarPorId(Long id);
+
 	void deletar(Long id);
 }

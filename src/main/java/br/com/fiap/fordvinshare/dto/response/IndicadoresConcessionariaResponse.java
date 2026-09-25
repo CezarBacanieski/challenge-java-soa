@@ -1,7 +1,6 @@
 package br.com.fiap.fordvinshare.dto.response;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,16 +12,13 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ManutencaoResponse {
+public class IndicadoresConcessionariaResponse {
 
-	private Long id;
-	private Long veiculoId;
-	private String vin;
 	private Long concessionariaId;
 	private String concessionariaNome;
-	private LocalDate dataServico;
-	private String tipoServico;
-	private BigDecimal valor;
-	private Boolean realizadaNaRedeOficial;
-	private String observacoes;
+	private Long totalManutencoes;
+	private Long veiculosAtendidos;
+	private Long veiculosRetidos;
+	/** Percentual dos veículos atendidos que continuam usando a rede oficial. */
+	private BigDecimal taxaRetencao;
 }

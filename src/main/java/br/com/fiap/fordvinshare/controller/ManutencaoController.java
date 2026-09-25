@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,28 +15,23 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/manutencoes")
-@Tag(name = "Manutenções", description = "Operações para registro e histórico de manutenções")
+@Tag(name = "Manutenções", description = "Registro de manutenções (dentro ou fora da rede oficial)")
 public class ManutencaoController {
 
 	private final ManutencaoService manutencaoService;
 
 	@PostMapping
-	@ResponseStatus(HttpStatus.CREATED)
-	@Operation(summary = "Registrar manutenção", operationId = "registrarManutencao")
-	public ManutencaoResponse registrar(@Valid @RequestBody ManutencaoRequest request) {
-		return manutencaoService.registrar(request);
-	}
-
-	@GetMapping("/veiculo/{veiculoId}")
-	@Operation(summary = "Listar histórico de manutenções de um veículo", operationId = "listarManutencoesPorVeiculo")
-	public List<ManutencaoResponse> listarPorVeiculo(@PathVariable Long veiculoId) {
-		return manutencaoService.listarPorVeiculo(veiculoId);
+	@Operation(summary = "Registrar manutenção", operationId = "registrarManutencao",
+			description = "Na rede oficial, concessionariaId é obrigatório. O status de uso da rede do veículo "
+					+ "é recalculado com base na manutenção mais recente.")
+	public ResponseEntity<ManutencaoResponse> registrar(@Valid @RequestBody ManutencaoRequest request) {
+		ManutencaoResponse criada = manutencaoService.registrar(request);
+		return ResponseEntity.created(LocationUtil.of("/api/manutencoes/{id}", criada.getId())).body(criada);
 	}
 
 	@GetMapping
@@ -46,8 +40,14 @@ public class ManutencaoController {
 		return manutencaoService.listarTodas();
 	}
 
+	@GetMapping("/{id}")
+	@Operation(summary = "Buscar manutenção por ID", operationId = "buscarManutencao")
+	public ManutencaoResponse buscarPorId(@PathVariable Long id) {
+		return manutencaoService.buscarPorId(id);
+	}
+
 	@DeleteMapping("/{id}")
-	@Operation(summary = "Deletar manutenção", operationId = "deletarManutencao")
+	@Operation(summary = "Remover manutenção (ADMIN)", operationId = "deletarManutencao")
 	public ResponseEntity<Void> deletar(@PathVariable Long id) {
 		manutencaoService.deletar(id);
 		return ResponseEntity.noContent().build();

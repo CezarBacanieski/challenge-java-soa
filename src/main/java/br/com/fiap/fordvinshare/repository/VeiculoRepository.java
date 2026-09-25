@@ -9,4 +9,10 @@ public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
 	List<Veiculo> findByClienteId(Long clienteId);
 
 	long countByUtilizaRedeOficialTrue();
+
+	boolean existsByClienteId(Long clienteId);
+
+	boolean existsByVinIgnoreCase(String vin);
+
+	boolean existsByVinIgnoreCaseAndIdNot(String vin, Long id);
 }

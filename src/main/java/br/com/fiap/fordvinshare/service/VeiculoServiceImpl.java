@@ -4,7 +4,10 @@ import br.com.fiap.fordvinshare.dto.request.VeiculoRequest;
 import br.com.fiap.fordvinshare.dto.response.VeiculoResponse;
 import br.com.fiap.fordvinshare.entity.Cliente;
 import br.com.fiap.fordvinshare.entity.Veiculo;
+import br.com.fiap.fordvinshare.exception.ConflitoException;
 import br.com.fiap.fordvinshare.repository.ClienteRepository;
+import br.com.fiap.fordvinshare.repository.LeadRepository;
+import br.com.fiap.fordvinshare.repository.ManutencaoRepository;
 import br.com.fiap.fordvinshare.repository.VeiculoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -18,10 +21,15 @@ public class VeiculoServiceImpl implements VeiculoService {
 
 	private final VeiculoRepository veiculoRepository;
 	private final ClienteRepository clienteRepository;
+	private final ManutencaoRepository manutencaoRepository;
+	private final LeadRepository leadRepository;
 
 	@Override
 	@Transactional
 	public VeiculoResponse cadastrar(VeiculoRequest request) {
+		if (veiculoRepository.existsByVinIgnoreCase(request.getVin())) {
+			throw new ConflitoException("Já existe um veículo com este VIN");
+		}
 		Cliente cliente = buscarClientePorId(request.getClienteId());
 
 		Veiculo veiculo = Veiculo.builder()
@@ -68,6 +76,9 @@ public class VeiculoServiceImpl implements VeiculoService {
 	@Transactional
 	public VeiculoResponse atualizar(Long id, VeiculoRequest request) {
 		Veiculo veiculo = buscarEntidadePorId(id);
+		if (veiculoRepository.existsByVinIgnoreCaseAndIdNot(request.getVin(), id)) {
+			throw new ConflitoException("Já existe um veículo com este VIN");
+		}
 		Cliente cliente = buscarClientePorId(request.getClienteId());
 
 		veiculo.setVin(request.getVin());
@@ -84,6 +95,9 @@ public class VeiculoServiceImpl implements VeiculoService {
 	@Transactional
 	public void deletar(Long id) {
 		Veiculo veiculo = buscarEntidadePorId(id);
+		if (manutencaoRepository.existsByVeiculoId(id) || leadRepository.existsByVeiculoId(id)) {
+			throw new ConflitoException("Veículo possui manutenções ou leads vinculados e não pode ser removido");
+		}
 		veiculoRepository.delete(veiculo);
 	}
 

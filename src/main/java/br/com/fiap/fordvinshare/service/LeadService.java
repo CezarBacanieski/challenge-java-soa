@@ -12,9 +12,9 @@ public interface LeadService {
 
 	List<LeadResponse> gerarAutomatico();
 
-	List<LeadResponse> listarTodos();
+	List<LeadResponse> listar(StatusLead status);
 
-	List<LeadResponse> listarPorStatus(StatusLead status);
+	LeadResponse buscarPorId(Long id);
 
 	LeadResponse atualizarStatus(Long id, LeadStatusRequest request);
 }

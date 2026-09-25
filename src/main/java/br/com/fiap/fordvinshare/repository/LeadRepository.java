@@ -12,4 +12,6 @@ public interface LeadRepository extends JpaRepository<Lead, Long> {
 	boolean existsByVeiculoIdAndStatus(Long veiculoId, StatusLead status);
 
 	long countByStatus(StatusLead status);
+
+	boolean existsByVeiculoId(Long veiculoId);
 }
